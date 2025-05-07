@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lord Byng Census</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 60px 40px;
+      background-image: url('GRADIENT.jpg');
+      background-size: cover;
+      background-attachment: fixed;
+      background-position: center;
+      background-repeat: no-repeat;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .glass-container {
+      position: relative;
+      background: none;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 20px;
+      margin-bottom: 60px;
+    }
+
+    .glass {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 25px 45px rgba(0, 0, 0, 0.1);
+      z-index: 0;
+    }
+
+    .chart-box {
+      position: relative;
+      z-index: 1;
+      filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.3));
+    }
+
+    .center-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      text-align: center;
+      pointer-events: none;
+      font-size: 20px;
+      font-weight: bold;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+
+    .tooltip {
+      position: absolute;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      color: white;
+      border-radius: 10px;
+      font-size: 14px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.25);
+      text-align: center;
+      min-width: 120px;
+      z-index: 1000;
+    }
+
+    .donut-row {
+      display: flex;
+      flex-wrap: nowrap;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 40px;
+      padding-bottom: 80px;
+      overflow-x: auto;
+    }
+
+    .glass-container.donut {
+      width: 340px;
+      height: 340px;
+      flex-shrink: 0;
+    }
+
+    .bar-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 0;
+    }
+
+    .bar-chart-title {
+      margin-top: 12px;
+      font-size: 18px;
+      font-weight: 600;
+      color: white;
+      text-align: center;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      z-index: 2;
+    }
+
+    .bar-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 40px;
+    }
+
+    .instrument-area-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 60px;
+      margin-bottom: 80px;
+    }
+
+    .instrument-glass-container {
+      position: relative;
+      width: 100%;
+      max-width: 1000px;
+      z-index: -40;
+    }
+
+    .instrument-area-box {
+      width: 100%;
+      padding: 20px 0;
+    }
+
+    .area-bar-row {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 40px;
+      margin-top: 60px;
+      flex-wrap: wrap;
+    }
+
+    .instrument-area-title {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 18px;
+      font-weight: 600;
+      color: white;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+
+    .legend-container {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      margin-top: 12px;
+      padding-left: 20px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      color: white;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 6px 10px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+    }
+
+    .legend-color {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 1px solid white;
+      box-shadow: 0 0 3px rgba(255,255,255,0.5);
+    }
+
+    .chart-and-legend {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 20px;
+}
+
+.vertical-legend {
+  flex-shrink: 0;
+  padding: 10px 0;
+  margin: 0;
+}
+  </style>
+</head>
+<body>
+
+  <!-- World Map First -->
+  <div class="glass-container" style="width: 100%; max-width: 1200px; height: 600px;">
+    <div class="glass"></div>
+    <div id="world-map" class="chart-box"></div>
+    <div class="center-text" style="font-size: 22px;">Country of Birth Distribution</div>
+  </div>
+
+  <!-- Donuts Below -->
+  <div class="donut-row">
+    <div class="glass-container donut">
+      <div class="glass"></div>
+      <div id="chart1" class="chart-box"></div>
+      <div class="center-text">Sports<br>Participation</div>
+    </div>
+
+    <div class="glass-container donut">
+      <div class="glass"></div>
+      <div id="chart2" class="chart-box"></div>
+      <div class="center-text">Favorite<br>Subject</div>
+    </div>
+
+    <div class="glass-container donut">
+      <div class="glass"></div>
+      <div id="chart3" class="chart-box"></div>
+      <div class="center-text">Gender<br>Distribution</div>
+    </div>
+
+    <div class="glass-container donut">
+      <div class="glass"></div>
+      <div id="chart4" class="chart-box"></div>
+      <div class="center-text">Grade<br>Distribution</div>
+    </div>
+  </div>
+  <!-- Updated Bar Chart Row with Smaller Size and Side-by-Side Layout -->
+  <div class="bar-row">
+    <div class="bar-chart-block chart-and-legend">
+      <div class="glass-container bar-box">
+        <div class="glass"></div>
+        <div id="drink-bar-chart" class="chart-box"></div>
+      </div>
+      <div id="drink-legend" class="legend-container vertical-legend"></div>
+    </div>
+  
+    <div class="bar-chart-block chart-and-legend">
+      <div class="glass-container bar-box">
+        <div class="glass"></div>
+        <div id="music-bar-chart" class="chart-box"></div>
+      </div>
+      <div id="music-legend" class="legend-container vertical-legend"></div>
+    </div>
+  </div>
+
+<div class="area-bar-row">
+    <!-- Area Chart Block -->
+    <div class="glass-container bar-box" style="width: 48%; max-width: 900px;">
+      <div class="glass"></div>
+      <div id="instrument-area-chart" class="chart-box"></div>
+      <h3 class="bar-chart-title">Music Genre vs Instrument Participation</h3>
+    </div>
+  
+    <!-- Personality Bar Chart Block -->
+    <div class="glass-container bar-box" style="width: 48%; max-width: 900px;">
+      <div class="glass"></div>
+      <div id="personality-bar-chart" class="chart-box"></div>
+      <h3 class="bar-chart-title">Personality Types by Birth Month</h3>
+    </div>
+  </div>
+  
+
+  <!-- D3 and TopoJSON -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://d3js.org/topojson.v3.min.js"></script>
+
+  <script>
+    const glassBlues = [
+      "rgba(200, 240, 255, 0.75)",
+      "rgba(150, 220, 245, 0.75)",
+      "rgba(100, 200, 235, 0.75)",
+      "rgba(50, 180, 225, 0.75)",
+      "rgba(24, 161, 205, 0.75)",
+      "rgba(15, 140, 185, 0.75)",
+      "rgba(10, 120, 165, 0.75)",
+      "rgba(5, 100, 145, 0.75)",
+      "rgba(0, 80, 125, 0.75)"
+    ];
+
+    const tooltip = d3.select("body").append("div").attr("class", "tooltip");
+
+    // Donut Chart Logic
+    function createDonutChart(containerId, data, labelKey) {
+      const width = 260, height = 260, radius = Math.min(width, height) / 2, donutRatio = 0.6;
+      const svg = d3.select(containerId)
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .append("g")
+        .attr("transform", `translate(${width / 2},${height / 2})`);
+
+      const pie = d3.pie().value(d => d.count).sort(null);
+      const arc = d3.arc().innerRadius(radius * donutRatio).outerRadius(radius).cornerRadius(15).padAngle(0.02);
+
+      const defs = svg.append("defs");
+      const glowFilter = defs.append("filter").attr("id", "glow-" + containerId).attr("height", "130%");
+      glowFilter.append("feGaussianBlur").attr("stdDeviation", "4").attr("result", "blur");
+      glowFilter.append("feComposite").attr("in", "SourceGraphic").attr("in2", "blur").attr("operator", "over");
+
+      const slices = svg.selectAll("path")
+        .data(pie(data))
+        .enter()
+        .append("path")
+        .attr("d", arc)
+        .attr("fill", (d, i) => glassBlues[i % glassBlues.length])
+        .attr("stroke", "rgba(255, 255, 255, 0.6)")
+        .style("stroke-width", "2px")
+        .style("backdrop-filter", "blur(3px)")
+        .style("-webkit-backdrop-filter", "blur(3px)")
+        .style("opacity", 0.9)
+        .on("mouseover", function(event, d) {
+          d3.select(this)
+            .transition().duration(200)
+            .attr("opacity", 1)
+            .style("stroke-width", "3px")
+            .style("filter", `url(#glow-${containerId})`);
+          const total = d3.sum(data.map(d => d.count));
+          const percentage = (d.data.count / total * 100).toFixed(1);
+          tooltip.html(`<div style="font-weight:bold; font-size:16px;">${d.data[labelKey]}</div><div style="font-size:18px;">${percentage}%</div><div style="font-size:12px; opacity:0.8;">${d.data.count} responses</div>`)
+            .style("opacity", 1)
+            .style("left", `${event.pageX + 15}px`)
+            .style("top", `${event.pageY - 40}px`);
+        })
+        .on("mouseout", function() {
+          d3.select(this).transition().duration(200)
+            .attr("opacity", 0.9)
+            .style("stroke-width", "2px")
+            .style("filter", "none");
+          tooltip.style("opacity", 0);
+        });
+
+      svg.append("circle")
+        .attr("r", radius * donutRatio - 10)
+        .attr("fill", "rgba(255, 255, 255, 0.1)")
+        .attr("stroke", "rgba(255, 255, 255, 0.3)")
+        .attr("stroke-width", "1px");
+
+      slices.transition().duration(1000).attrTween("d", function(d) {
+        const interpolate = d3.interpolate({ startAngle: 0, endAngle: 0 }, d);
+        return t => arc(interpolate(t));
+      });
+    }
+
+    // Choropleth Map
+    const countryData = {
+    "Canada": 102,
+    "India": 7,
+    "South Korea": 12,
+    "China": 42,
+    "Japan": 2,
+    "Russia": 1,
+    "United States of America": 10,
+    "Taiwan": 6,
+    "United Kingdom": 4,
+    "El Salvador": 1,
+    "Pakistan": 1,
+    "Mexico": 2,
+    "Belgium": 1
+  };
+
+  const mapWidth = 1000, mapHeight = 500;
+  const projection = d3.geoNaturalEarth1().scale(170).translate([mapWidth / 2, mapHeight / 2]);
+  const path = d3.geoPath(projection);
+  const svgMap = d3.select("#world-map")
+    .append("svg")
+    .attr("width", mapWidth)
+    .attr("height", mapHeight);
+
+  const mapTooltip = d3.select("body").append("div").attr("class", "tooltip");
+
+  const decileColors = [
+    "rgba(220, 245, 255, 0.5)",
+    "rgba(200, 240, 255, 0.6)",
+    "rgba(180, 230, 250, 0.65)",
+    "rgba(160, 220, 245, 0.7)",
+    "rgba(140, 210, 240, 0.75)",
+    "rgba(120, 200, 230, 0.8)",
+    "rgba(90, 180, 215, 0.85)",
+    "rgba(60, 160, 200, 0.9)",
+    "rgba(30, 130, 180, 0.95)",
+    "rgba(0, 100, 150, 1)"
+  ];
+
+  const values = Object.values(countryData).sort((a, b) => a - b);
+  const quantizeScale = d3.scaleQuantile()
+    .domain(values)
+    .range(decileColors);
+
+  d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json").then(worldData => {
+    const countries = topojson.feature(worldData, worldData.objects.countries).features;
+
+    const nameMap = new Map([
+      ["Canada", "Canada"],
+      ["India", "India"],
+      ["Korea, Republic of", "Republic of Korea"],
+      ["China", "China"],
+      ["Japan", "Japan"],
+      ["Russia", "Russia"],
+      ["United States", "United States of America"],
+      ["Taiwan", "Taiwan"],
+      ["United Kingdom", "United Kingdom"],
+      ["El Salvador", "El Salvador"],
+      ["Pakistan", "Pakistan"],
+      ["Mexico", "Mexico"],
+      ["Belgium", "Belgium"]
+    ]);
+
+    svgMap.selectAll("path")
+      .data(countries)
+      .enter()
+      .append("path")
+      .attr("d", path)
+      .attr("fill", d => {
+        const name = nameMap.get(d.properties.name) || d.properties.name;
+        return countryData[name]
+          ? quantizeScale(countryData[name])
+          : "rgba(255, 255, 255, 0.05)";
+      })
+      .attr("stroke", "rgba(255, 255, 255, 0.4)")
+      .attr("stroke-width", 0.5)
+      .style("opacity", 0)
+      .on("mouseover", function(event, d) {
+        d3.select(this).style("stroke-width", 1.5);
+        const name = nameMap.get(d.properties.name) || d.properties.name;
+        const value = countryData[name];
+        mapTooltip.html(`
+          <div style="font-weight:bold; font-size:15px;">${name}</div>
+          <div style="font-size:14px; opacity:0.85;">
+            ${value !== undefined ? value + " students" : "No data"}
+          </div>
+        `)
+        .style("opacity", 1)
+        .style("left", `${event.pageX + 10}px`)
+        .style("top", `${event.pageY - 40}px`);
+      })
+      .on("mousemove", function(event) {
+        mapTooltip
+          .style("left", `${event.pageX + 10}px`)
+          .style("top", `${event.pageY - 40}px`);
+      })
+      .on("mouseout", function() {
+        d3.select(this).style("stroke-width", 0.5);
+        mapTooltip.style("opacity", 0);
+      })
+      .transition()
+      .duration(1000)
+      .style("opacity", 1);
+  });
+
+    // Render all 4 donuts
+    createDonutChart("#chart1", [
+      { sport: "I don't play sports", count: 82 },
+      { sport: "Badminton", count: 24 },
+      { sport: "Soccer", count: 15 },
+      { sport: "Skiing", count: 14 },
+      { sport: "Basketball", count: 13 },
+      { sport: "Tennis", count: 12 },
+      { sport: "Volleyball", count: 1 },
+      { sport: "Swimming", count: 1 },
+      { sport: "Other", count: 9 }
+    ], "sport");
+
+    createDonutChart("#chart2", [
+      { subject: "Science", count: 33 },
+      { subject: "Math", count: 32 },
+      { subject: "Social Studies", count: 25 },
+      { subject: "P.E.", count: 26 },
+      { subject: "English", count: 21 },
+      { subject: "Art", count: 19 },
+      { subject: "Other", count: 48 }
+    ], "subject");
+
+    createDonutChart("#chart3", [
+      { gender: "Male", count: 84 },
+      { gender: "Female", count: 90 },
+      { gender: "Non-Binary", count: 13 }
+    ], "gender");
+
+    createDonutChart("#chart4", [
+      { grade: "Grade 12", count: 47 },
+      { grade: "Grade 11", count: 29 },
+      { grade: "Grade 10", count: 43 },
+      { grade: "Grade 9", count: 37 },
+      { grade: "Grade 8", count: 30 }
+    ], "grade");
+  </script>
+
+<script>
+    const drinkData = [
+      { grade: "Grade 8", Water: 4, Coffee: 4, "Bubble Tea": 10, Soda: 2, Juice: 2, Milk: 2, Other: 6 },
+      { grade: "Grade 9", Water: 6, Coffee: 3, "Bubble Tea": 12, Soda: 4, Juice: 4, Milk: 2, Other: 6 },
+      { grade: "Grade 10", Water: 4, Coffee: 1, "Bubble Tea": 17, Soda: 3, Juice: 6, Milk: 2, Other: 10 },
+      { grade: "Grade 11", Water: 5, Coffee: 0, "Bubble Tea": 8, Soda: 4, Juice: 4, Milk: 3, Other: 5 },
+      { grade: "Grade 12", Water: 9, Coffee: 5, "Bubble Tea": 11, Soda: 3, Juice: 1, Milk: 7, Other: 10 }
+    ];
+  
+    const barMargin = { top: 20, right: 40, bottom: 40, left: 100 };
+    const barWidth = 960 - barMargin.left - barMargin.right;
+    const barHeight = 400 - barMargin.top - barMargin.bottom;
+  
+    const barSvg = d3.select("#drink-bar-chart")
+      .append("svg")
+      .attr("width", barWidth + barMargin.left + barMargin.right)
+      .attr("height", barHeight + barMargin.top + barMargin.bottom)
+      .append("g")
+      .attr("transform", `translate(${barMargin.left},${barMargin.top})`);
+  
+    const categories = ["Water", "Coffee", "Bubble Tea", "Soda", "Juice", "Milk", "Other"];
+  
+    // Normalize data into percentages
+    drinkData.forEach(d => {
+      const total = d3.sum(categories.map(k => d[k]));
+      categories.forEach(k => d[k] = d[k] / total);
+    });
+  
+    const stack = d3.stack().keys(categories);
+    const series = stack(drinkData);
+  
+    const yScale = d3.scaleBand()
+      .domain(drinkData.map(d => d.grade))
+      .range([0, barHeight])
+      .padding(0.2);
+  
+    const xScale = d3.scaleLinear()
+      .domain([0, 1])
+      .range([0, barWidth]);
+  
+    const barColorScale = d3.scaleOrdinal()
+      .domain(categories)
+      .range([
+        "rgba(200, 240, 255, 0.75)",
+        "rgba(150, 220, 245, 0.75)",
+        "rgba(100, 200, 235, 0.75)",
+        "rgba(50, 180, 225, 0.75)",
+        "rgba(24, 161, 205, 0.75)",
+        "rgba(10, 120, 165, 0.75)",
+        "rgba(0, 80, 125, 0.75)"
+      ]);
+  
+    const barTooltip = d3.select("body").append("div").attr("class", "tooltip");
+  
+    barSvg.append("g")
+  .selectAll("g")
+  .data(series)
+  .join("g")
+  .attr("fill", d => barColorScale(d.key))
+  .selectAll("rect")
+  .data(d => d.map(v => ({ ...v, key: d.key })))
+  .join("rect")
+  .attr("y", d => yScale(d.data.grade))
+  .attr("x", d => xScale(d[0]))
+  .attr("height", yScale.bandwidth())
+  .attr("width", d => xScale(d[1]) - xScale(d[0]))
+  .on("mouseover", function(event, d) {
+    const value = ((d[1] - d[0]) * 100).toFixed(1);
+    mapTooltip.html(`<div style='font-weight:bold;'>${d.data.grade}</div><div>${d.key}: ${value}%</div>`)
+      .style("opacity", 1)
+      .style("left", `${event.pageX + 10}px`)
+      .style("top", `${event.pageY - 40}px`);
+  })
+  .on("mouseout", function() {
+    mapTooltip.style("opacity", 0);
+  })
+  .transition()
+  .duration(1000)
+  .attr("width", d => xScale(d[1]) - xScale(d[0]));
+  
+    
+  </script>
+  
+  <script>
+    const musicData = [
+      { grade: "Grade 8", Classical: 2, EDM: 5, "Hip-Hop": 1, Jazz: 6, Pop: 4, Rock: 3, none: 5, Other: 0 },
+      { grade: "Grade 9", Classical: 4, EDM: 4, "Hip-Hop": 5, Jazz: 7, Pop: 3, Rock: 4, none: 4, Other: 2 },
+      { grade: "Grade 10", Classical: 4, EDM: 6, "Hip-Hop": 6, Jazz: 6, Pop: 5, Rock: 9, none: 4, Other: 0 },
+      { grade: "Grade 11", Classical: 6, EDM: 9, "Hip-Hop": 6, Jazz: 5, Pop: 2, Rock: 3, none: 3, Other: 0 },
+      { grade: "Grade 12", Classical: 9, EDM: 8, "Hip-Hop": 6, Jazz: 7, Pop: 6, Rock: 5, none: 5, Other: 2 }
+    ];
+  
+    const musicCategories = ["Classical", "EDM", "Hip-Hop", "Jazz", "Pop", "Rock", "none", "Other"];
+    const musicMargin = { top: 30, right: 30, bottom: 40, left: 40 };
+    const musicWidth = 500 - musicMargin.left - musicMargin.right;
+    const musicHeight = 400 - musicMargin.top - musicMargin.bottom;
+  
+    const musicColorScale = d3.scaleOrdinal()
+      .domain(musicCategories)
+      .range([
+        "rgba(200, 240, 255, 0.75)", "rgba(150, 220, 245, 0.75)", "rgba(100, 200, 235, 0.75)",
+        "rgba(50, 180, 225, 0.75)", "rgba(24, 161, 205, 0.75)", "rgba(10, 120, 165, 0.75)",
+        "rgba(0, 80, 125, 0.75)", "rgba(0, 60, 105, 0.75)"
+      ]);
+  
+    const musicTooltip = d3.select("body").append("div").attr("class", "tooltip");
+  
+    const musicSvg = d3.select("#music-bar-chart")
+      .append("svg")
+      .attr("width", musicWidth + musicMargin.left + musicMargin.right)
+      .attr("height", musicHeight + musicMargin.top + musicMargin.bottom)
+      .append("g")
+      .attr("transform", `translate(${musicMargin.left},${musicMargin.top})`);
+  
+    musicData.forEach(d => {
+      const total = d3.sum(musicCategories.map(k => d[k]));
+      musicCategories.forEach(k => d[k] = d[k] / total);
+    });
+  
+    const musicStack = d3.stack().keys(musicCategories);
+    const musicSeries = musicStack(musicData);
+  
+    const musicX = d3.scaleBand().domain(musicData.map(d => d.grade)).range([0, musicWidth]).padding(0.2);
+    const musicY = d3.scaleLinear().domain([0, 1]).range([musicHeight, 0]);
+  
+    musicSvg.append("g")
+      .selectAll("g")
+      .data(musicSeries)
+      .join("g")
+      .attr("fill", d => musicColorScale(d.key))
+      .selectAll("rect")
+      .data(d => d.map(v => ({ ...v, key: d.key })))
+      .join("rect")
+      .attr("x", d => musicX(d.data.grade))
+      .attr("y", d => musicY(d[1]))
+      .attr("width", musicX.bandwidth())
+      .attr("height", d => musicY(d[0]) - musicY(d[1]))
+      .on("mouseover", function(event, d) {
+        const value = ((d[1] - d[0]) * 100).toFixed(1);
+        musicTooltip.html(`<div style='font-weight:bold;'>${d.data.grade}</div><div>${d.key}: ${value}%</div>`)
+          .style("opacity", 1)
+          .style("left", `${event.pageX + 10}px`)
+          .style("top", `${event.pageY - 40}px`);
+      })
+      .on("mouseout", function() {
+        musicTooltip.style("opacity", 0);
+      })
+      .transition().duration(1000);
+  
+
+  </script>
+
+<script>
+    const genreData = [
+      { Genre: "Classical", Plays: 32, NotPlays: 3 },
+      { Genre: "EDM", Plays: 4, NotPlays: 18 },
+      { Genre: "Hip-Hop", Plays: 10, NotPlays: 16 },
+      { Genre: "Jazz", Plays: 21, NotPlays: 11 },
+      { Genre: "Pop", Plays: 8, NotPlays: 22 },
+      { Genre: "Rock", Plays: 7, NotPlays: 15 },
+      { Genre: "none", Plays: 9, NotPlays: 15 },
+      { Genre: "Other", Plays: 0, NotPlays: 2 }
+    ];
+  
+    const margin = { top: 40, right: 30, bottom: 40, left: 60 };
+    const width = 900 - margin.left - margin.right;
+    const height = 400 - margin.top - margin.bottom;
+  
+    const svg = d3.select("#instrument-area-chart")
+      .append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform", `translate(${margin.left},${margin.top})`);
+  
+    const x = d3.scalePoint()
+      .domain(genreData.map(d => d.Genre))
+      .range([0, width]);
+  
+    const y = d3.scaleLinear()
+      .domain([0, d3.max(genreData, d => Math.max(d.Plays, d.NotPlays)) + 5])
+      .range([height, 0]);
+  
+    const area1 = d3.area()
+      .x(d => x(d.Genre))
+      .y0(height)
+      .y1(d => y(d.Plays))
+      .curve(d3.curveMonotoneX);
+  
+    const area2 = d3.area()
+      .x(d => x(d.Genre))
+      .y0(height)
+      .y1(d => y(d.NotPlays))
+      .curve(d3.curveMonotoneX);
+  
+    const hitooltip = d3.select("body").append("div").attr("class", "tooltip");
+  
+    svg.append("path")
+      .datum(genreData)
+      .attr("fill", "rgba(24, 161, 205, 0.7)")
+      .attr("d", area2);
+  
+    svg.append("path")
+      .datum(genreData)
+      .attr("fill", "rgba(100, 200, 235, 0.7)")
+      .attr("d", area1);
+  
+    svg.selectAll("circle.plays")
+      .data(genreData)
+      .enter().append("circle")
+      .attr("class", "plays")
+      .attr("cx", d => x(d.Genre))
+      .attr("cy", d => y(d.Plays))
+      .attr("r", 5)
+      .attr("fill", "rgba(100, 200, 235, 1)")
+      .on("mouseover", (event, d) => {
+        hitooltip.html(`<div style='font-weight:bold;'>${d.Genre}</div><div>Plays Instrument: ${d.Plays}</div>`)
+          .style("opacity", 1)
+          .style("left", `${event.pageX + 10}px`)
+          .style("top", `${event.pageY - 40}px`);
+      })
+      .on("mouseout", () => tooltip.style("opacity", 0));
+  
+    svg.selectAll("circle.notplays")
+      .data(genreData)
+      .enter().append("circle")
+      .attr("class", "notplays")
+      .attr("cx", d => x(d.Genre))
+      .attr("cy", d => y(d.NotPlays))
+      .attr("r", 5)
+      .attr("fill", "rgba(24, 161, 205, 1)")
+      .on("mouseover", (event, d) => {
+        tooltip.html(`<div style='font-weight:bold;'>${d.Genre}</div><div>Does Not Play: ${d.NotPlays}</div>`)
+          .style("opacity", 1)
+          .style("left", `${event.pageX + 10}px`)
+          .style("top", `${event.pageY - 40}px`);
+      })
+      .on("mouseout", () => tooltip.style("opacity", 0));
+  
+    svg.append("g")
+      .attr("transform", `translate(0,${height})`)
+      .call(d3.axisBottom(x))
+      .selectAll("text")
+      .style("fill", "white")
+      .style("font-weight", "600");
+  
+    svg.append("g")
+      .call(d3.axisLeft(y))
+      .selectAll("text")
+      .style("fill", "white")
+      .style("font-weight", "600");
+  </script>
+  
+  <script>
+    const personalityData = [
+      { monthLabel: "January", intro: 5, extro: 3, ambi: 4 },
+      { monthLabel: "February", intro: 4, extro: 5, ambi: 3 },
+      { monthLabel: "March", intro: 6, extro: 4, ambi: 5 },
+      { monthLabel: "April", intro: 3, extro: 6, ambi: 4 },
+      { monthLabel: "May", intro: 5, extro: 5, ambi: 5 },
+      { monthLabel: "June", intro: 4, extro: 7, ambi: 3 },
+      { monthLabel: "July", intro: 6, extro: 4, ambi: 6 },
+      { monthLabel: "August", intro: 4, extro: 5, ambi: 5 },
+      { monthLabel: "September", intro: 5, extro: 6, ambi: 4 },
+      { monthLabel: "October", intro: 3, extro: 4, ambi: 7 },
+      { monthLabel: "November", intro: 6, extro: 5, ambi: 4 },
+      { monthLabel: "December", intro: 4, extro: 8, ambi: 3 }
+    ];
+  
+    const personalityMargin = { top: 30, right: 20, bottom: 40, left: 80 };
+    const personalityWidth = 900 - personalityMargin.left - personalityMargin.right;
+    const personalityHeight = 500 - personalityMargin.top - personalityMargin.bottom;
+  
+    const personalitySvg = d3.select("#personality-bar-chart")
+      .append("svg")
+      .attr("width", personalityWidth + personalityMargin.left + personalityMargin.right)
+      .attr("height", personalityHeight + personalityMargin.top + personalityMargin.bottom)
+      .append("g")
+      .attr("transform", `translate(${personalityMargin.left},${personalityMargin.top})`);
+  
+    const personalitySubgroups = ["intro", "extro", "ambi"];
+    const personalityGroups = personalityData.map(d => d.monthLabel);
+  
+    const yPersonality = d3.scaleBand()
+      .domain(personalityGroups)
+      .range([0, personalityHeight])
+      .padding(0.2);
+  
+    const xPersonality = d3.scaleLinear()
+      .domain([0, d3.max(personalityData, d => Math.max(d.intro, d.extro, d.ambi)) + 2])
+      .range([0, personalityWidth]);
+  
+    const xSubgroupPersonality = d3.scaleBand()
+      .domain(personalitySubgroups)
+      .range([0, yPersonality.bandwidth()])
+      .padding(0.05);
+  
+    const personalityColor = d3.scaleOrdinal()
+      .domain(personalitySubgroups)
+      .range([
+        "rgba(150, 220, 245, 0.9)",
+        "rgba(50, 180, 225, 0.9)",
+        "rgba(0, 100, 150, 0.9)"
+      ]);
+  
+    const personalityTooltip = d3.select("body").append("div").attr("class", "tooltip");
+  
+    personalitySvg.append("g")
+      .selectAll("g")
+      .data(personalityData)
+      .enter()
+      .append("g")
+      .attr("transform", d => `translate(0, ${yPersonality(d.monthLabel)})`)
+      .selectAll("rect")
+      .data(d => personalitySubgroups.map(key => ({ key: key, value: d[key], monthLabel: d.monthLabel })))
+      .enter()
+      .append("rect")
+      .attr("y", d => xSubgroupPersonality(d.key))
+      .attr("height", xSubgroupPersonality.bandwidth())
+      .attr("x", 0)
+      .attr("width", d => xPersonality(d.value))
+      .attr("fill", d => personalityColor(d.key))
+      .on("mouseover", function(event, d) {
+        personalityTooltip.html(`<div style='font-weight:bold;'>${d.monthLabel}</div><div>${d.key}: ${d.value}</div>`)
+          .style("opacity", 1)
+          .style("left", `${event.pageX + 10}px`)
+          .style("top", `${event.pageY - 40}px`);
+      })
+      .on("mouseout", function() {
+        personalityTooltip.style("opacity", 0);
+      });
+  
+    personalitySvg.append("g")
+      .call(d3.axisLeft(yPersonality))
+      .selectAll("text")
+      .style("fill", "white")
+      .style("font-weight", "600");
+  
+    personalitySvg.append("g")
+      .attr("transform", `translate(0, ${personalityHeight})`)
+      .call(d3.axisBottom(xPersonality).ticks(6))
+      .selectAll("text")
+      .style("fill", "white")
+      .style("font-weight", "600");
+  </script>
+
+<!-- LEGEND DYNAMIC SCRIPT -->
+<script>
+    function createLegend(colors, labels, containerId) {
+      const container = document.createElement('div');
+      container.className = 'legend-container';
+      labels.forEach((label, i) => {
+        const item = document.createElement('div');
+        item.className = 'legend-item';
+    
+        const colorCircle = document.createElement('div');
+        colorCircle.className = 'legend-color';
+        colorCircle.style.backgroundColor = colors[i % colors.length];
+    
+        const labelText = document.createElement('span');
+        labelText.textContent = label;
+    
+        item.appendChild(colorCircle);
+        item.appendChild(labelText);
+        container.appendChild(item);
+      });
+      document.getElementById(containerId).appendChild(container);
+    }
+    </script>
+    
+    <!-- X/Y AXIS LABELING ENHANCEMENT EXAMPLE FOR BAR CHART -->
+    <script>
+    // Add axis labels to drink chart
+    barSvg.append("text")
+      .attr("x", barWidth / 2)
+      .attr("y", barHeight + barMargin.bottom - 5)
+      .attr("text-anchor", "middle")
+      .attr("fill", "white")
+      .style("font-weight", "600")
+      .style("font-size", "14px")
+      .text("% of Students (Normalized)");
+    
+    barSvg.append("text")
+      .attr("x", -barHeight / 2)
+      .attr("y", -70)
+      .attr("text-anchor", "middle")
+      .attr("fill", "white")
+      .attr("transform", "rotate(-90)")
+      .style("font-weight", "600")
+      .style("font-size", "14px")
+      .text("Grade Level");
+    </script>
+    
+    <!-- INSERTING LEGENDS BELOW CHARTS -->
+    <script>
+  document.addEventListener('DOMContentLoaded', function() {
+  createLegend(
+    ["rgba(200, 240, 255, 0.75)", "rgba(150, 220, 245, 0.75)", "rgba(100, 200, 235, 0.75)",
+     "rgba(50, 180, 225, 0.75)", "rgba(24, 161, 205, 0.75)", "rgba(10, 120, 165, 0.75)", "rgba(0, 80, 125, 0.75)"],
+    ["Water", "Coffee", "Bubble Tea", "Soda", "Juice", "Milk", "Other"],
+    "drink-legend"
+  );
+
+  createLegend(
+    ["rgba(200, 240, 255, 0.75)", "rgba(150, 220, 245, 0.75)", "rgba(100, 200, 235, 0.75)",
+     "rgba(50, 180, 225, 0.75)", "rgba(24, 161, 205, 0.75)", "rgba(10, 120, 165, 0.75)",
+     "rgba(0, 80, 125, 0.75)", "rgba(0, 60, 105, 0.75)"],
+    ["Classical", "EDM", "Hip-Hop", "Jazz", "Pop", "Rock", "None", "Other"],
+    "music-legend"
+  );
+});
+    </script>
+    
+</body>
+</html>
+
+
